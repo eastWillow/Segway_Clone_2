@@ -94,31 +94,16 @@ void setup() {
     // use the code below to change accel/gyro offset values
     
     Serial.println("Updating internal sensor offsets...");
-    // -76	-2359	1688	0	0	0
-    /*Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
-    Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
-    Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
-    Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
-    Serial.print("\n");*/
-    accelgyro.setXGyroOffset(141);
-    accelgyro.setYGyroOffset(-58);
-    accelgyro.setZGyroOffset(27);
     accelgyro.setXAccelOffset(-3844);
     accelgyro.setYAccelOffset(1517);
     accelgyro.setZAccelOffset(994);
+    accelgyro.setXGyroOffset(141);
+    accelgyro.setYGyroOffset(-58);
+    accelgyro.setZGyroOffset(27);
     accelgyro.setClockSource(MPU6050_CLOCK_PLL_YGYRO);
-    accelgyro.setDLPFMode(0);//5 is best
+    accelgyro.setDLPFMode(5);//5 is best
     accelgyro.setFullScaleGyroRange(0);
     accelgyro.setFullScaleAccelRange(0);
-    /*Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
-    Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
-    Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
-    Serial.print(accelgyro.getXGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
-    Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
-    Serial.print("\n");*/
     
 
     // configure Arduino LED for
