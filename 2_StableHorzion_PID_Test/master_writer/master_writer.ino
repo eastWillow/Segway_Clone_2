@@ -1,5 +1,5 @@
 #include <Wire.h>
-#define _AUTO_DEGREE //_MANUAL_PWM, _AUTO_DEGREE, _MANUAL_SPEED
+#define _S_Curve //_MANUAL_PWM, _AUTO_DEGREE, _MANUAL_SPEED _S_Curve
 void setup()
 {
   Wire.begin(); // join i2c bus (address optional for master)
@@ -7,6 +7,7 @@ void setup()
   Serial.setTimeout(50);
   main_set();
   while (!Serial);
+  ScurveInitial();
   motorCommand(2048);//Shutdown
   motorCommand(0);//Initial
   motorCommand(2048);//Shutdown
@@ -15,11 +16,12 @@ void setup()
 void loop()
 {
   static int command = 2048;
-  static long initialMillis = 0;
-  static long errMillis = 0;
+  static double initialMillis = 0;
+  static double errMillis = 0;
   static double errAngle = 0;
   static double initialAngle = 0;
 #ifdef _AUTO_DEGREE
+#else _S_Curve
   static double PID_target = 0;
 #endif
   while (Serial.available() > 0) {
@@ -51,27 +53,45 @@ void loop()
       command = -90;
     }
 #endif
+#ifdef _S_Curve
+    if (command > 200) {
+      if (command != 2048)
+        command = 200;
+    }
+    if (command < -200) {
+      command = -200;
+    }
+#endif
   }
   sample_angle(micros());
 #ifndef _AUTO_DEGREE
+#else _S_Curve
   motorCommand(command);
 #endif
   if (command == 2048) {
     initialMillis = millis();
     initialAngle = use_CompAngle(micros());
     PIDreset();
+    ScurveReset();
     motorCommand(2048);
   }
   else {
-    errMillis = millis() - initialMillis;
+    errMillis = (millis() - initialMillis) / 1000.0;
     errAngle = initialAngle - use_CompAngle(micros());
-    Serial.print((double)errMillis / 1000.0, 4);
+    Serial.print((double)errMillis, 4);
     Serial.print('\t');
     Serial.print(command);
     Serial.print('\t');
 #ifdef _AUTO_DEGREE
     PID_target = PID(errAngle, command);
     motorCommand(PID_target);
+    Serial.print(PID_target);
+    Serial.print('\t');
+#endif
+#ifdef _S_Curve
+    PID_target = PID(errAngle, command);
+    ScurveCommand(PID_target, errMillis);
+    motorCommand(ScurveSpeedOutput());
     Serial.print(PID_target);
     Serial.print('\t');
 #endif

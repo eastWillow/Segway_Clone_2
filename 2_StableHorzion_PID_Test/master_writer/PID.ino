@@ -2,8 +2,8 @@ static double err = 0;
 static double totalErr = 0;
 static double U = 0;
 int PID(double now, double target) {
-  const double P = 0.681;
-  const double I = 0.00158450429699075;//積分需要乘上固定的時間去積分0.0158450429699075
+  const double P = 10;
+  const double I = 0;//0.00158450429699075;//積分需要乘上固定的時間去積分0.0158450429699075
   totalErr += err;
   err = target - now;
   U = round((err) * P + (totalErr) * I);
