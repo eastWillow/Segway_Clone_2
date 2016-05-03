@@ -4,13 +4,5 @@ void interrupt_initial(void) {
 }
 void interruptReset(void) {
   interruptResetFlag = true;
-  errMillis = 0;
-  errAngle = 0;
-  command = 0;
-  PIDreset();
-  ScurveReset();
-  initialMillis = millis();
-  initialAngle = use_CompAngle(micros());
-  digitalWrite(13, LOW);
 }
 

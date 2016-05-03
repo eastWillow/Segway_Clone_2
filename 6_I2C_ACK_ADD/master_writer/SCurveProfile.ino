@@ -3,7 +3,7 @@
 #include <math.h>
 #define derivative 0.001 //
 
-const double jerk = 3000.0 * derivative ; //we must to change this value to change speed
+const double jerk = 9080000.0 * derivative ; //we must to change this value to change speed
 volatile double j = 0.0;
 volatile double a = 0.0 ;
 volatile double t = 0.0 ;
@@ -18,23 +18,18 @@ volatile double t2 = 0.0;//t2 = k* t1
 volatile double t3 = 0.0;//t3 = t1
 volatile double k = 1.0;//k*t1 = t2
 
-static long initialTimer = 0;
 
-void setup() {
-  Serial.begin(115200);
-  Serial.setTimeout(50);
-  while (!Serial);
-  Timer1.initialize(derivative * 1000000); //0.001s to Integrator
-  Timer3.initialize(derivative * 5000000); //0.005s to change Jerk
-  initialTimer = millis();
+void ScurveInitial() {
+  Timer1.initialize(derivative * 1019000); //0.001s to Integrator add offset
+  Timer3.initialize(derivative * 1000000); //0.001s to change Jerk
 }
 
-void loop() {
-  t  = (millis() - initialTimer) / 1000.0;
-  while (Serial.available() > 0) {
-    targetV = Serial.parseInt();
+void ScurveCommand(int command, double time) {
+  t  = time;
+  if (t > t2 && command != targetV) {
     Timer1.detachInterrupt();
     Timer3.detachInterrupt();
+    targetV = command;
     a = 0;
     j = 0;
     errV = targetV - v;
@@ -43,24 +38,13 @@ void loop() {
     t1 = t0 + tErr;
     t2 = k * tErr + t1;
     t3 = tErr + t2;
+    Timer3.attachInterrupt(JerkCommand);
+    Timer1.attachInterrupt(Integrator);
   }
-  Timer3.attachInterrupt(JerkCommand);
-  Timer1.attachInterrupt(Integrator);
-  /*Serial.print(t0, 4);
-  Serial.print('\t');
-  Serial.print(t1, 4);
-  Serial.print('\t');
-  Serial.print(t2, 4);
-  Serial.print('\t');
-  Serial.print(t3, 4);
-  Serial.print('\t');*/
-  Serial.print(t, 4);
-  Serial.print('\t');
-  Serial.print(j, 4);
-  Serial.print('\t');
-  Serial.print(a, 4);
-  Serial.print('\t');
-  Serial.println(v, 4);
+}
+
+int ScurveSpeedOutput(void) {
+  return (int)round(v);
 }
 void Integrator(void) {
   a += (j * derivative);
@@ -79,12 +63,30 @@ void JerkCommand(void) {
   }
   else {
     j = 0.0;
-    if ( fabs(v - targetV) > 0.005 && t > t3) {
+    if ( fabs(v - targetV) > 0.005 && t >= t3) {
       a = 0.0;
-      v = targetV;
+      //v = targetV;
     }
   }
 }
 double direction(double x) {
   return (x >= 0) ? (1.0) : (-1.0);
+}
+void ScurveReset(void) {
+  Timer1.detachInterrupt();
+  Timer3.detachInterrupt();
+  j = 0.0;
+  a = 0.0 ;
+  t = 0.0 ;
+  v = 0.0 ;
+  targetV = 0.0 ;
+  lastTargetV = 0.0 ;
+  errV = 0.0 ;
+  tErr = 0.0;
+  t0 = 0.0;
+  t1 = 0.0;//jerk * t1 = maxAccel
+  t2 = 0.0;//t2 = k* t1
+  t3 = 0.0;//t3 = t1
+  Timer3.attachInterrupt(JerkCommand);
+  Timer1.attachInterrupt(Integrator);
 }

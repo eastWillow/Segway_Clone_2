@@ -20,7 +20,7 @@ volatile double initialMillis = 0;
 volatile int command = 2048;
 volatile double errMillis = 0;
 volatile double errAngle = 0;
-
+volatile bool interruptResetFlag = false;
 void loop()
 {
 #ifdef _AUTO_DEGREE
@@ -67,16 +67,16 @@ void loop()
 #endif
   }
   sample_angle(micros());
-#ifndef _AUTO_DEGREE
-#else _S_Curve
+#ifdef _MANUAL_SPEED
   motorCommand(command);
 #endif
-  if (command == 2048) {
+  if (command == 2048 || interruptResetFlag == true) {
+    motorCommand(2048);
+    interruptResetFlag = false;
     initialMillis = millis();
     initialAngle = use_CompAngle(micros());
     PIDreset();
     ScurveReset();
-    motorCommand(2048);
     digitalWrite(13, LOW);
   }
   else {
